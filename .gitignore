@@ -1,0 +1,57 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# uv
+.uv/
+uv.lock
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDEs
+.vscode/
+.idea/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment variables
+.env
+.env.*
+
+# Data / datasets (VERY IMPORTANT for your repo)
+data/
+datasets/
+*.zip
+*.tar
+*.tar.gz
+*.rar
+
+# Model artifacts
+checkpoints/
+weights/
+models/
+*.pt
+*.pth
+*.onnx
+
+# Experiment outputs
+runs/
+outputs/
+results/
+
+# Temporary files
+tmp/
+temp/
