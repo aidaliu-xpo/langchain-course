@@ -9,7 +9,6 @@ load_dotenv()
 
 from langchain.agents import AgentExecutor
 from langchain.agents.react.agent import create_react_agent
-from langchain_core.output_parsers.pydantic import PydanticOutputParser
 from langchain_core.runnables import RunnableLambda
 from langchain_ollama import ChatOllama
 from langchain_tavily import TavilySearch
@@ -20,12 +19,12 @@ from schemas import AgentResponse
 
 tools = [TavilySearch()]
 llm = ChatOllama(model="qwen2.5:7b-instruct")
+structured_llm = llm.with_structured_output(AgentResponse)
 
 
-output_parser = PydanticOutputParser(pydantic_object=AgentResponse)
 react_prompt_with_format_instructions = PromptTemplate(
     template=REACT_PROMPT_WITH_FORMAT_INSTRUCTIONS,
-    input_variables=["input", "agent_scratchpad","tool_names"]).partial(format_instructions=output_parser.get_format_instructions())
+    input_variables=["input", "agent_scratchpad","tool_names"],).partial(format_instructions="")
 
 agent = create_react_agent(
     llm = llm,
