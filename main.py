@@ -1,42 +1,62 @@
-from typing import List
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="langchain_tavily")
 
-from pydantic import BaseModel, Field
 from dotenv import load_dotenv
-
 load_dotenv()
-from langchain.agents import create_agent
-from langchain.tools import tool
-from langchain_core.messages import HumanMessage
+
+from langchain.agents import AgentExecutor
+from langchain.agents.react.agent import create_react_agent
+
 from langchain_ollama import ChatOllama
 from langchain_tavily import TavilySearch
-
-class Source(BaseModel):
-    """Schema for a source used by the agent"""
-
-    url:str = Field(description='The URL of the source')
-
-class AgentResponse(BaseModel):
-    """Schema for agent response with answer and sources"""
-
-    answer:str = Field(description="The agent's answer to the query")
-    sources:List[Source] = Field(default_factory=list, description='List of sources used to generate the answer')
+from langchain_core.prompts import PromptTemplate
 
 
-llm = ChatOllama(model='qwen2.5:7b-instruct', temperature = 0, format='json')
+template = """Answer the following questions as best you can. You have access to the following tools:
+
+{tools}
+
+Use the following format:
+
+Question: the input question you must answer
+Thought: you should always think about what to do
+Action: the action to take, should be one of [{tool_names}]
+Action Input: the input to the action
+Observation: the result of the action
+... (this Thought/Action/Action Input/Observation can repeat N times)
+Thought: I now know the final answer
+Final Answer: the final answer to the original input question
+
+Begin!
+
+Question: {input}
+Thought:{agent_scratchpad}"""
+
 tools = [TavilySearch()]
-agent = create_agent(model=llm, tools=tools)
+llm = ChatOllama(model="qwen2.5:7b-instruct")
+
+react_prompt = PromptTemplate.from_template(template)
+
+agent = create_react_agent(
+    llm = llm,
+    tools=tools,
+    prompt=react_prompt
+)
+
+agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+chain = agent_executor
+
+
 
 def main():
     print("Hello from langchain-course!")
-    result = agent.invoke({
-        "messages": HumanMessage(content=
-                                 "Search for 3 remote AI Engineer/Scientist job postings in linkedin. "
-                                 "Return: Title | Company | Location/Remote | Link"
-                                 )
-    })
+
+    result = chain.invoke(
+        input = {
+            "input": "search for 3 job postings for an ai engineer using langchain in europe on linkedin and list their details"
+        }
+    )
     print(result)
-
-
 
 
 if __name__ == "__main__":
